@@ -17,7 +17,21 @@ async function ensureColumn(table: string, column: string, definition: string) {
   }
 }
 
+async function ensureUtf8mb4(table: string) {
+  await pool.query(`ALTER TABLE ${table} CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+}
+
 async function migrateExistingTables() {
+  await ensureUtf8mb4("agents");
+  await ensureUtf8mb4("agent_api_keys");
+  await ensureUtf8mb4("agent_heartbeats");
+  await ensureUtf8mb4("agent_commands");
+  await ensureUtf8mb4("agent_events");
+  await ensureUtf8mb4("agent_versions");
+  await ensureUtf8mb4("facilities");
+  await ensureUtf8mb4("users");
+  await ensureUtf8mb4("death_persons");
+  await ensureUtf8mb4("death_person_imports");
   await ensureColumn("agents", "api_key_status", "api_key_status ENUM('none','active','revoked') NOT NULL DEFAULT 'none' AFTER status");
   await ensureColumn("agents", "api_key_prefix", "api_key_prefix VARCHAR(20) NULL AFTER api_key_status");
   await ensureColumn("agents", "api_key_last_used_at", "api_key_last_used_at DATETIME NULL AFTER api_key_prefix");

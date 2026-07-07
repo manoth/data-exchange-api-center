@@ -11,7 +11,7 @@ export const pool = mysql.createPool({
   waitForConnections: true,
   namedPlaceholders: true,
   timezone: "+07:00",
-  charset: "utf8mb4"
+  charset: "utf8mb4_unicode_ci"
 });
 
 export async function pingDatabase() {
