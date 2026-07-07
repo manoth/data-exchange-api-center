@@ -113,12 +113,12 @@ export async function registerAgent(input: RegisterAgentInput) {
     throw new Error("Agent not found after register");
   }
 
-  const issuedKey = await ensureActiveAgentKey(agent.id);
+  const issuedKey = await issueAgentKey(agent.id, "register");
   return {
     affectedRows: result.affectedRows,
     agent: await getAgent(agent.id),
-    apiKey: issuedKey?.apiKey || null,
-    apiKeyPrefix: issuedKey?.apiKeyPrefix || agent.apiKeyPrefix || null
+    apiKey: issuedKey.apiKey,
+    apiKeyPrefix: issuedKey.apiKeyPrefix
   };
 }
 
@@ -191,25 +191,7 @@ export async function rotateAgentKey(agentId: number) {
     throw error;
   }
 
-  await pool.query(
-    `UPDATE agent_api_keys SET status = 'revoked', revoked_at = NOW()
-    WHERE agent_id = ? AND status = 'active'`,
-    [agentId]
-  );
-
-  const apiKey = generateAgentApiKey();
-  const apiKeyPrefix = keyPrefix(apiKey);
-  await pool.query(
-    `INSERT INTO agent_api_keys (agent_id, key_hash, key_prefix, status)
-    VALUES (?, ?, ?, 'active')`,
-    [agentId, hashAgentKey(apiKey), apiKeyPrefix]
-  );
-  await pool.query(
-    `UPDATE agents SET api_key_status = 'active', api_key_prefix = ?, api_key_last_used_at = NULL WHERE id = ?`,
-    [apiKeyPrefix, agentId]
-  );
-
-  return { agentId, apiKey, apiKeyPrefix };
+  return issueAgentKey(agentId, "rotate");
 }
 
 export async function revokeAgentKey(agentId: number) {
@@ -296,16 +278,12 @@ async function updateAgentProfile(input: RegisterAgentInput) {
   );
 }
 
-async function ensureActiveAgentKey(agentId: number) {
-  const [keys] = await pool.query<RowDataPacket[]>(
-    `SELECT key_prefix AS apiKeyPrefix FROM agent_api_keys
-    WHERE agent_id = ? AND status = 'active'
-    ORDER BY id DESC
-    LIMIT 1`,
+async function issueAgentKey(agentId: number, reason: "register" | "rotate") {
+  await pool.query(
+    `UPDATE agent_api_keys SET status = 'revoked', revoked_at = NOW()
+    WHERE agent_id = ? AND status = 'active'`,
     [agentId]
   );
-  if (keys[0]) return null;
-
   const apiKey = generateAgentApiKey();
   const apiKeyPrefix = keyPrefix(apiKey);
   await pool.query(
@@ -314,10 +292,19 @@ async function ensureActiveAgentKey(agentId: number) {
     [agentId, hashAgentKey(apiKey), apiKeyPrefix]
   );
   await pool.query(
-    `UPDATE agents SET api_key_status = 'active', api_key_prefix = ? WHERE id = ?`,
+    `UPDATE agents SET api_key_status = 'active', api_key_prefix = ?, api_key_last_used_at = NULL WHERE id = ?`,
     [apiKeyPrefix, agentId]
   );
-  return { apiKey, apiKeyPrefix };
+  await pool.query(
+    `INSERT INTO agent_events (agent_id, event_type, severity, message, payload)
+    VALUES (?, 'api_key_issued', 'info', ?, ?)`,
+    [
+      agentId,
+      reason === "register" ? "ออก Agent API Key จากการลงทะเบียน Agent" : "ออก Agent API Key ใหม่จาก Control",
+      JSON.stringify({ reason, apiKeyPrefix })
+    ]
+  );
+  return { agentId, apiKey, apiKeyPrefix };
 }
 
 async function findAgentByUid(agentUid: string): Promise<AgentIdentity | null> {

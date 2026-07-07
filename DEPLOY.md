@@ -67,6 +67,7 @@ CORS_ORIGIN=https://control.example.go.th
 - `AUTH_SECRET` ใช้ลงนาม session/JWT ของ Control
 - `AGENT_ENROLLMENT_TOKEN` ใช้เฉพาะขั้นตอนลงทะเบียน Agent ครั้งแรก
 - `AGENT_LEGACY_ENROLLMENT_TOKENS` ใช้ชั่วคราวสำหรับ Agent v0.1.0 ที่ติดตั้งไปแล้ว ถ้าทุกเครื่องได้ Agent API Key แล้วควรถอดออก
+- ถ้า Agent ลงทะเบียนซ้ำด้วย enrollment token ที่ถูกต้อง API Center จะออก Agent API Key ใหม่ให้และ revoke key เดิมของเครื่องนั้น เพื่อรองรับกรณีติดตั้งใหม่หรือไฟล์ key ฝั่ง Agent หาย
 - ค่า secret ต้องยาว เดายาก และห้ามส่งต่อผ่าน chat หรือเอกสารสาธารณะ
 - ห้าม commit `.env`
 
