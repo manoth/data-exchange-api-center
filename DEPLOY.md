@@ -54,6 +54,7 @@ DB_USER=dex_api
 DB_PASSWORD=your-strong-db-password
 AUTH_SECRET=your-random-auth-secret-at-least-32-characters
 AGENT_ENROLLMENT_TOKEN=your-random-agent-enrollment-token
+AGENT_LEGACY_ENROLLMENT_TOKENS=data-exchange-agent-enroll-dev-token
 AGENT_ONLINE_TIMEOUT_SECONDS=60
 CORS_ORIGIN=https://control.example.go.th
 ```
@@ -62,6 +63,7 @@ CORS_ORIGIN=https://control.example.go.th
 
 - `AUTH_SECRET` ใช้ลงนาม session/JWT ของ Control
 - `AGENT_ENROLLMENT_TOKEN` ใช้เฉพาะขั้นตอนลงทะเบียน Agent ครั้งแรก
+- `AGENT_LEGACY_ENROLLMENT_TOKENS` ใช้ชั่วคราวสำหรับ Agent v0.1.0 ที่ติดตั้งไปแล้ว ถ้าทุกเครื่องได้ Agent API Key แล้วควรถอดออก
 - ค่า secret ต้องยาว เดายาก และห้ามส่งต่อผ่าน chat หรือเอกสารสาธารณะ
 - ห้าม commit `.env`
 

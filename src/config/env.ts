@@ -13,6 +13,7 @@ const envSchema = z.object({
   DB_PASSWORD: z.string().default(""),
   AUTH_SECRET: z.string().min(32).optional(),
   AGENT_ENROLLMENT_TOKEN: z.string().min(32).optional(),
+  AGENT_LEGACY_ENROLLMENT_TOKENS: z.string().optional(),
   AGENT_ONLINE_TIMEOUT_SECONDS: z.coerce.number().int().positive().default(60),
   CORS_ORIGIN: z.string().default("http://127.0.0.1:4200,http://localhost:4200")
 });
@@ -32,7 +33,15 @@ if (parsedEnv.NODE_ENV === "production") {
 export const env = {
   ...parsedEnv,
   AUTH_SECRET: parsedEnv.AUTH_SECRET ?? "dev-only-auth-secret-change-before-production",
-  AGENT_ENROLLMENT_TOKEN: parsedEnv.AGENT_ENROLLMENT_TOKEN ?? "dev-only-agent-enrollment-token-change"
+  AGENT_ENROLLMENT_TOKEN: parsedEnv.AGENT_ENROLLMENT_TOKEN ?? "dev-only-agent-enrollment-token-change",
+  AGENT_LEGACY_ENROLLMENT_TOKENS: [
+    parsedEnv.AGENT_LEGACY_ENROLLMENT_TOKENS ?? "",
+    "data-exchange-agent-enroll-dev-token"
+  ]
+    .join(",")
+    .split(",")
+    .map((token) => token.trim())
+    .filter(Boolean)
 };
 
 export const corsOrigins = env.CORS_ORIGIN.split(",").map((origin) => origin.trim()).filter(Boolean);

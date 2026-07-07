@@ -55,6 +55,10 @@ const requireAgentAuth: RequestHandler = async (req, _res, next) => {
   }
 };
 
+function isAllowedEnrollmentToken(token: string) {
+  return token === env.AGENT_ENROLLMENT_TOKEN || env.AGENT_LEGACY_ENROLLMENT_TOKENS.includes(token);
+}
+
 agentsRouter.get("/", requireAuth, async (_req, res, next) => {
   try {
     res.json({ ok: true, data: await listAgents() });
@@ -76,8 +80,11 @@ agentsRouter.get("/:id", requireAuth, async (req, res, next) => {
 agentsRouter.post("/register", async (req, res, next) => {
   try {
     const enrollmentToken = req.header("x-agent-enrollment-token") || "";
-    if (enrollmentToken !== env.AGENT_ENROLLMENT_TOKEN) {
-      return res.status(401).json({ ok: false, error: "Enrollment token ไม่ถูกต้อง" });
+    if (!isAllowedEnrollmentToken(enrollmentToken)) {
+      return res.status(401).json({
+        ok: false,
+        error: "Enrollment token ไม่ถูกต้อง กรุณาตรวจสอบค่า CENTRAL_API_ENROLLMENT_TOKEN ของ Agent หรือ AGENT_ENROLLMENT_TOKEN ของ API Center"
+      });
     }
     res.json({ ok: true, data: await registerAgent(registerSchema.parse(req.body)) });
   } catch (error) {

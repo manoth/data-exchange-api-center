@@ -9,6 +9,7 @@
 - `DB_PASSWORD`
 - `AUTH_SECRET`
 - `AGENT_ENROLLMENT_TOKEN`
+- `AGENT_LEGACY_ENROLLMENT_TOKENS` ถ้าจำเป็นต้องเปิดใช้ช่วง migration
 - secret อื่นๆ ที่ใช้เชื่อมต่อระบบภายนอก
 
 API Center จะเก็บ Agent API Key ในฐานข้อมูลแบบ hash และจะแสดง key เต็มเฉพาะตอนออก key ใหม่เท่านั้น
@@ -18,6 +19,7 @@ API Center จะเก็บ Agent API Key ในฐานข้อมูลแ
 - ต้องใช้ HTTPS
 - ต้องตั้ง `NODE_ENV=production`
 - ต้องตั้ง `AUTH_SECRET` และ `AGENT_ENROLLMENT_TOKEN` เอง
+- ใช้ `AGENT_LEGACY_ENROLLMENT_TOKENS` เฉพาะช่วงย้าย Agent รุ่นเก่า และถอดออกเมื่อทุกเครื่องมี key แล้ว
 - ต้องใช้ DB user เฉพาะระบบ
 - ต้องจำกัด `CORS_ORIGIN` เป็น URL ของ Control
 

@@ -49,3 +49,15 @@ curl http://127.0.0.1:3000/api/health
 ```
 
 ถ้าระบบพร้อมใช้งานควรได้ response สถานะ API กลับมา
+
+## หมายเหตุสำหรับ Agent v0.1.0 ที่ติดตั้งไปแล้ว
+
+Agent v0.1.0 รุ่นแรกมี enrollment token ฝังอยู่ในตัวโปรแกรมเดิม หาก API Center production ใช้ token คนละค่า Agent จะลงทะเบียน Agent API Key ไม่สำเร็จ และ Control จะไม่เห็นเครื่อง online
+
+เพื่อ migration เครื่องที่ติดตั้งไปแล้ว ให้ API Center รองรับ token เดิมชั่วคราวผ่าน:
+
+```env
+AGENT_LEGACY_ENROLLMENT_TOKENS=data-exchange-agent-enroll-dev-token
+```
+
+หลังจากเครื่อง Agent ทุกเครื่องได้รับ Agent API Key แล้ว ควรนำ legacy token ออกในการ rollout รอบถัดไป และใช้การจัดการ key รายเครื่องผ่าน Control เป็นหลัก
