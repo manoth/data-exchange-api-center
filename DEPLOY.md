@@ -52,6 +52,8 @@ DB_PORT=3306
 DB_NAME=db_data_exchange_tools
 DB_USER=dex_api
 DB_PASSWORD=your-strong-db-password
+DB_CHARSET=utf8mb4
+DB_COLLATION=utf8mb4_unicode_ci
 AUTH_SECRET=your-random-auth-secret-at-least-32-characters
 AGENT_ENROLLMENT_TOKEN=your-random-agent-enrollment-token
 AGENT_LEGACY_ENROLLMENT_TOKENS=data-exchange-agent-enroll-dev-token
@@ -61,6 +63,7 @@ CORS_ORIGIN=https://control.example.go.th
 
 ข้อสำคัญ:
 
+- `DB_CHARSET` และ `DB_COLLATION` ควรใช้ `utf8mb4`/`utf8mb4_unicode_ci` เพื่อรองรับภาษาไทยและข้อมูล Unicode ครบถ้วนบน MySQL/MariaDB
 - `AUTH_SECRET` ใช้ลงนาม session/JWT ของ Control
 - `AGENT_ENROLLMENT_TOKEN` ใช้เฉพาะขั้นตอนลงทะเบียน Agent ครั้งแรก
 - `AGENT_LEGACY_ENROLLMENT_TOKENS` ใช้ชั่วคราวสำหรับ Agent v0.1.0 ที่ติดตั้งไปแล้ว ถ้าทุกเครื่องได้ Agent API Key แล้วควรถอดออก
@@ -134,6 +137,12 @@ npm run migrate
 npm run build
 pm2 restart data-exchange-api
 ```
+
+หลัง update รอบที่แก้เรื่องภาษาไทย/ฐานคนตายกลาง:
+
+- ถ้าชื่อหน่วยบริการใน Control ยังเพี้ยน ให้รอ Agent ส่ง heartbeat ใหม่ หรือ restart Agent เพื่อให้ส่ง `hospitalname` จาก `opdconfig` ขึ้นมาอีกครั้ง
+- ถ้าเคยนำเข้าฐานคนตายกลางไว้ก่อนหน้า ให้ Import ไฟล์ Excel ฐานคนตายกลางใหม่ผ่าน Control เพื่อให้ `PID` ถูก normalize ด้วย logic ล่าสุด
+- ถ้าต้องการเห็นผลเทียบการตายบน Agent ต้องแปลงไฟล์ Exchange ใหม่ ผลลัพธ์เก่าที่เคยแปลงแล้วจะไม่คำนวณ lookup ย้อนหลัง
 
 ถ้าต้องการสั้นลง สามารถใช้ script:
 

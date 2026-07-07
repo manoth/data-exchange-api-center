@@ -11,6 +11,10 @@ const envSchema = z.object({
   DB_NAME: z.string().min(1),
   DB_USER: z.string().min(1),
   DB_PASSWORD: z.string().default(""),
+  DB_CHARSET: z.string().min(1).optional(),
+  DB_COLLATION: z.string().min(1).optional(),
+  MYSQL_CHARSET: z.string().min(1).optional(),
+  MYSQL_COLLATION: z.string().min(1).optional(),
   AUTH_SECRET: z.string().min(32).optional(),
   AGENT_ENROLLMENT_TOKEN: z.string().min(32).optional(),
   AGENT_LEGACY_ENROLLMENT_TOKENS: z.string().optional(),
@@ -32,6 +36,8 @@ if (parsedEnv.NODE_ENV === "production") {
 
 export const env = {
   ...parsedEnv,
+  DB_CHARSET: parsedEnv.DB_CHARSET ?? parsedEnv.MYSQL_CHARSET ?? "utf8mb4",
+  DB_COLLATION: parsedEnv.DB_COLLATION ?? parsedEnv.MYSQL_COLLATION ?? "utf8mb4_unicode_ci",
   AUTH_SECRET: parsedEnv.AUTH_SECRET ?? "dev-only-auth-secret-change-before-production",
   AGENT_ENROLLMENT_TOKEN: parsedEnv.AGENT_ENROLLMENT_TOKEN ?? "dev-only-agent-enrollment-token-change",
   AGENT_LEGACY_ENROLLMENT_TOKENS: [

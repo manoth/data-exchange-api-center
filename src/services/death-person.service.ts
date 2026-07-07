@@ -52,7 +52,7 @@ export async function importDeathPersonsFromExcel(file: Express.Multer.File, imp
 
   for (const row of rows) {
     const normalized = normalizeRow(row);
-    const pid = textValue(normalized.PID);
+    const pid = personKeyValue(normalized.PID);
     if (!pid) {
       skippedRows += 1;
       continue;
@@ -119,7 +119,7 @@ export async function lookupDeathPersonPids(pids: string[]) {
   const normalizedPids = Array.from(
     new Set(
       pids
-        .map((pid) => textValue(pid))
+        .map((pid) => personKeyValue(pid))
         .filter((pid) => pid.length > 0)
     )
   );
@@ -196,6 +196,23 @@ function normalizeRow(row: Record<string, unknown>) {
 function textValue(value: unknown) {
   if (value === null || value === undefined) return "";
   return String(value).trim();
+}
+
+function personKeyValue(value: unknown) {
+  const text = textValue(value);
+  if (!text) return "";
+
+  let normalized = text;
+  if (normalized.endsWith(".0") && /^\d+\.0$/.test(normalized)) {
+    normalized = normalized.slice(0, -2);
+  }
+
+  const digits = normalized.replace(/\D/g, "");
+  if (!digits) return normalized;
+
+  // Excel sometimes drops the leading zero for 13-digit identifiers.
+  if (digits.length === 12) return digits.padStart(13, "0");
+  return digits;
 }
 
 function numberValue(value: unknown) {
