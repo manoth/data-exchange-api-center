@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { env } from "../config/env.js";
 import { pool } from "../db/pool.js";
+import { normalizeAgentRow, normalizeThaiText } from "../utils/text.js";
 
 export type RegisterAgentInput = {
   agentUid: string;
@@ -57,7 +58,7 @@ export async function listAgents() {
     ORDER BY COALESCE(last_seen_at, registered_at) DESC`,
     [env.AGENT_ONLINE_TIMEOUT_SECONDS]
   );
-  return rows;
+  return rows.map(normalizeAgentRow);
 }
 
 export async function getAgent(id: number) {
@@ -79,7 +80,7 @@ export async function getAgent(id: number) {
     FROM agents WHERE id = ?`,
     [env.AGENT_ONLINE_TIMEOUT_SECONDS, id]
   );
-  return rows[0] || null;
+  return rows[0] ? normalizeAgentRow(rows[0]) : null;
 }
 
 export async function registerAgent(input: RegisterAgentInput) {
@@ -99,7 +100,7 @@ export async function registerAgent(input: RegisterAgentInput) {
     [
       input.agentUid,
       input.facilityCode || null,
-      input.facilityName || null,
+      normalizeThaiText(input.facilityName) || null,
       input.machineName || null,
       input.appVersion || null,
       input.frontendVersion || null,
@@ -286,7 +287,7 @@ async function updateAgentProfile(input: RegisterAgentInput) {
     [
       input.agentUid,
       input.facilityCode || null,
-      input.facilityName || null,
+      normalizeThaiText(input.facilityName) || null,
       input.machineName || null,
       input.appVersion || null,
       input.frontendVersion || null,

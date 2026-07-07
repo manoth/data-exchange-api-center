@@ -1,6 +1,8 @@
+import { RowDataPacket } from "mysql2";
 import { pool } from "../db/pool.js";
 import { schemaStatements } from "../db/schema.js";
 import { ensureDefaultAdmin } from "../services/auth.service.js";
+import { normalizeThaiText } from "../utils/text.js";
 
 async function ensureColumn(table: string, column: string, definition: string) {
   const [rows] = await pool.query(
@@ -38,11 +40,30 @@ async function migrateExistingTables() {
   await ensureColumn("agents", "is_primary_agent", "is_primary_agent TINYINT(1) NOT NULL DEFAULT 0 AFTER api_key_last_used_at");
 }
 
+async function repairAgentThaiNames() {
+  const [rows] = await pool.query<Array<RowDataPacket & { id: number; facilityName: string | null }>>(
+    `SELECT id, facility_name AS facilityName
+    FROM agents
+    WHERE facility_name IS NOT NULL AND facility_name <> ''`
+  );
+
+  for (const row of rows) {
+    const repaired = normalizeThaiText(row.facilityName);
+    if (repaired && repaired !== row.facilityName && !repaired.includes("�")) {
+      await pool.query(
+        `UPDATE agents SET facility_name = ? WHERE id = ?`,
+        [repaired, row.id]
+      );
+    }
+  }
+}
+
 async function migrate() {
   for (const statement of schemaStatements) {
     await pool.query(statement);
   }
   await migrateExistingTables();
+  await repairAgentThaiNames();
   await ensureDefaultAdmin();
 
   await pool.end();
